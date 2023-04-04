@@ -8,21 +8,10 @@ inputs:
   arch:
     description: "The expected architecture"
     default: ""
-  token:
-    description: "The FixedIT access token"
-    required: true
-  fappcli-version:
-    description: "The version of fappcli to use"
-    default: ""
 
 runs:
   using: "composite"
   steps:
-    - name: Install fappcli
-      uses: fixedit-ai/install-fappcli-action@main
-      with:
-        token: ${{ inputs.token }}
-        fappcli-version: ${{ inputs.fappcli-version }}
     - name: Test application
       shell: bash
       run: |
