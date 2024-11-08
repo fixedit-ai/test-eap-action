@@ -3,11 +3,26 @@ description: "Validate the content of an .eap package for Axis ACAP"
 
 inputs:
   app-path:
-    description: "The path to the app to test"
+    description: "The path to the app to test."
     default: "*.eap"
   arch:
-    description: "The expected architecture"
+    description: "The expected architecture (e.g., aarch64, armv7hf, all)."
     default: ""
+  no-manifest-ok:
+    description: "Accept packages without a manifest.json file."
+    default: "false"
+  ignore-file-name:
+    description: "Ignore file name validation."
+    default: "false"
+  ignore-other-elf-files:
+    description: "Ignore checking ELF files other than the app binary."
+    default: "false"
+  allow-special-files:
+    description: "Allow special files such as FIFO, sockets, etc. in the EAP file."
+    default: "false"
+  strict:
+    description: "Treat warnings as errors."
+    default: "true"
 
 runs:
   using: "composite"
@@ -15,5 +30,15 @@ runs:
     - name: Test application
       shell: bash
       run: |
+        # Construct the ARCH argument
         ARCH_ARG=`[[ -n "${{ inputs.arch }}" ]] && echo "--arch ${{ inputs.arch }}" || echo ""`
-        fappcli-test -vv ${{ inputs.app-path }} $ARCH_ARG
+
+        # Construct additional flags based on inputs
+        MANIFEST_ARG=`[[ "${{ inputs.no-manifest-ok }}" == "true" ]] && echo "--no-manifest-ok" || echo ""`
+        IGNORE_FILENAME_ARG=`[[ "${{ inputs.ignore-file-name }}" == "true" ]] && echo "--ignore-file-name" || echo ""`
+        IGNORE_ELF_ARG=`[[ "${{ inputs.ignore-other-elf-files }}" == "true" ]] && echo "--ignore-other-elf-files" || echo ""`
+        ALLOW_SPECIAL_ARG=`[[ "${{ inputs.allow-special-files }}" == "true" ]] && echo "--allow-special-files" || echo ""`
+        STRICT_ARG=`[[ "${{ inputs.strict }}" == "true" ]] && echo "--strict" || echo ""`
+
+        # Run the command with all the constructed arguments
+        fixeditcli-test -vv ${{ inputs.app-path }} $ARCH_ARG $MANIFEST_ARG $IGNORE_FILENAME_ARG $IGNORE_ELF_ARG $ALLOW_SPECIAL_ARG $STRICT_ARG
